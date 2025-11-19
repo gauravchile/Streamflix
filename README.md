@@ -57,6 +57,7 @@ Streamflix is a full microservices ecosystem simulating a real-world OTT platfor
 
 ## 🧱 2. Production Architecture Diagram
 
+![Streamflix Webpage] (Screenshots/Streamflix.PNG)
 ![Streamflix Architecture](Screenshots/Architecture.png)
 
 ---
