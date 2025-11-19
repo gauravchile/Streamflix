@@ -1,0 +1,211 @@
+# ------------------------------------------------------
+# API GATEWAY CONFIGMAP (STATIC SERVICES)
+# ------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-config
+  namespace: streamflix
+data:
+  default.conf: |
+    server {
+        listen 80;
+
+        # USER SERVICE
+        location /api/user/ {
+            proxy_pass http://user-service.streamflix.svc.cluster.local:5000/;
+        }
+
+        # MOVIE SERVICE (support both /api/movie/ and /api/movies)
+        location /api/movie/ {
+            proxy_pass http://movie-service.streamflix.svc.cluster.local:5000/;
+        }
+        location /api/movies {
+            proxy_pass http://movie-service.streamflix.svc.cluster.local:5000/;
+        }
+
+        # RATING SERVICE
+        location /api/rating/ {
+            proxy_pass http://rating-service.streamflix.svc.cluster.local:8000/;
+        }
+
+        # RECOMMENDATION SERVICE
+        location /api/recommend/ {
+            proxy_pass http://recommendation-service.streamflix.svc.cluster.local:8000/;
+        }
+
+        # FRONTEND
+        location / {
+            proxy_pass http://frontend.streamflix.svc.cluster.local:3000;
+        }
+    }
+
+---
+# ------------------------------------------------------
+# FRONTEND DEPLOYMENT - BLUE
+# ------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-blue
+  namespace: streamflix
+  labels:
+    app: frontend
+    version: blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: blue
+    spec:
+      containers:
+      - name: frontend
+        image: ${REGISTRY}/frontend:v1
+        ports:
+        - containerPort: 3000
+
+---
+# ------------------------------------------------------
+# FRONTEND DEPLOYMENT - GREEN
+# ------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-green
+  namespace: streamflix
+  labels:
+    app: frontend
+    version: green
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+      version: green
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: green
+    spec:
+      containers:
+      - name: frontend
+        image: ${REGISTRY}/frontend:v2
+        ports:
+        - containerPort: 3000
+
+---
+# ------------------------------------------------------
+# FRONTEND STATIC SERVICE
+# ------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: streamflix
+spec:
+  selector:
+    app: frontend
+    version: blue
+  ports:
+    - port: 3000
+      targetPort: 3000
+
+---
+# ------------------------------------------------------
+# API GATEWAY DEPLOYMENT - BLUE
+# ------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-blue
+  namespace: streamflix
+  labels:
+    app: api-gateway
+    version: blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        version: blue
+    spec:
+      containers:
+      - name: api-gateway
+        image: ${REGISTRY}/api-gateway:v1
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: api-gateway-config
+
+---
+# ------------------------------------------------------
+# API GATEWAY DEPLOYMENT - GREEN
+# ------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-green
+  namespace: streamflix
+  labels:
+    app: api-gateway
+    version: green
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+      version: green
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        version: green
+    spec:
+      containers:
+      - name: api-gateway
+        image: ${REGISTRY}/api-gateway:v2
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: api-gateway-config
+
+---
+# ------------------------------------------------------
+# API GATEWAY STATIC SERVICE
+# ------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: streamflix
+spec:
+  selector:
+    app: api-gateway
+    version: blue
+  ports:
+    - port: 80
+      targetPort: 80

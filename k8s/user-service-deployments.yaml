@@ -1,0 +1,105 @@
+# User Service - BLUE
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service-blue
+  namespace: streamflix
+  labels:
+    app: user-service
+    version: blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: user-service
+        version: blue
+    spec:
+      containers:
+      - name: user-service
+        image: ${REGISTRY}/user-service:v1
+        ports:
+        - containerPort: 5000
+        env:
+        - name: POSTGRES_HOST
+          value: "postgres.streamflix.svc.cluster.local"
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: streamflix-secrets
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: streamflix-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: streamflix-secrets
+              key: POSTGRES_PASSWORD
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+# User Service - GREEN
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service-green
+  namespace: streamflix
+  labels:
+    app: user-service
+    version: green
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+      version: green
+  template:
+    metadata:
+      labels:
+        app: user-service
+        version: green
+    spec:
+      containers:
+      - name: user-service
+        image: ${REGISTRY}/user-service:v2
+        ports:
+        - containerPort: 5000
+        env:
+        - name: POSTGRES_HOST
+          value: "postgres.streamflix.svc.cluster.local"
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: streamflix-secrets
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: streamflix-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: streamflix-secrets
+              key: POSTGRES_PASSWORD
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5

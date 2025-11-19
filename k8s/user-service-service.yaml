@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: streamflix
+spec:
+  selector:
+    app: user-service
+    version: blue    # default => blue
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000

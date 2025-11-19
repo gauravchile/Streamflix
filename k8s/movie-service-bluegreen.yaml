@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: movie-service-blue
+  namespace: streamflix
+  labels:
+    app: movie-service
+    version: blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: movie-service
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: movie-service
+        version: blue
+    spec:
+      containers:
+      - name: movie-service
+        image: ${REGISTRY}/movie-service:v1
+        ports:
+        - containerPort: 5000
+        env:
+        - name: MONGO_USER
+          valueFrom:
+            secretKeyRef:
+              name: streamflix-secrets
+              key: MONGO_INITDB_ROOT_USERNAME
+
+        - name: MONGO_PASS
+          valueFrom:
+            secretKeyRef:
+              name: streamflix-secrets
+              key: MONGO_INITDB_ROOT_PASSWORD
+
+        - name: MONGO_URL
+          value: "mongodb://$(MONGO_USER):$(MONGO_PASS)@mongo.streamflix.svc.cluster.local:27017/moviesdb?authSource=admin"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: movie-service-green
+  namespace: streamflix
+  labels:
+    app: movie-service
+    version: green
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: movie-service
+      version: green
+  template:
+    metadata:
+      labels:
+        app: movie-service
+        version: green
+    spec:
+      containers:
+      - name: movie-service
+        image: ${REGISTRY}/movie-service:v2
+        ports:
+        - containerPort: 5000
+        env:
+        - name: MONGO_USER
+          valueFrom:
+            secretKeyRef:
+              name: streamflix-secrets
+              key: MONGO_INITDB_ROOT_USERNAME
+
+        - name: MONGO_PASS
+          valueFrom:
+            secretKeyRef:
+              name: streamflix-secrets
+              key: MONGO_INITDB_ROOT_PASSWORD
+
+        - name: MONGO_URL
+          value: "mongodb://$(MONGO_USER):$(MONGO_PASS)@mongo.streamflix.svc.cluster.local:27017/moviesdb?authSource=admin"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: movie-service
+  namespace: streamflix
+spec:
+  selector:
+    app: movie-service
+    version: blue     # default to BLUE
+  ports:
+    - port: 5000
+      targetPort: 5000

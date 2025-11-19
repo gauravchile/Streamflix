@@ -1,0 +1,169 @@
+version: "3.9"
+
+services:
+
+  # ============================
+  # PostgreSQL
+  # ============================
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: streamflix
+      POSTGRES_PASSWORD: streamflixpass
+      POSTGRES_DB: streamflix
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # ============================
+  # MongoDB
+  # ============================
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  # ============================
+  # Redis
+  # ============================
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # ============================
+  # USER SERVICE
+  # ============================
+  user-service:
+    image: gauravchile/user-service:v1
+    container_name: user-service
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: streamflix
+      POSTGRES_USER: streamflix
+      POSTGRES_PASSWORD: streamflixpass
+      JWT_SECRET: supersecretjwt
+    ports:
+      - "5001:5000"
+
+  # ============================
+  # MOVIE SERVICE
+  # ============================
+  movie-service:
+    image: gauravchile/movie-service:v1
+    container_name: movie-service
+    restart: always
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URI: mongodb://root:example@mongo:27017
+      MONGO_DB: streamflix_movies
+    ports:
+      - "5002:5000"
+
+  # ============================
+  # RATING SERVICE
+  # ============================
+  rating-service:
+    image: gauravchile/rating-service:v1
+    container_name: rating-service
+    restart: always
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: streamflix_movies
+    ports:
+      - "5003:8000"
+
+  # ============================
+  # RECOMMENDATION SERVICE
+  # ============================
+  recommendation-service:
+    image: gauravchile/recommendation-service:v1
+    container_name: recommendation-service
+    restart: always
+    depends_on:
+      - mongo
+      - redis
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      REDIS_HOST: redis
+      MONGO_DB: streamflix_movies
+    ports:
+      - "5004:8000"
+
+  # ============================
+  # API GATEWAY (NGINX)
+  # ============================
+  api-gateway:
+    image: gauravchile/api-gateway:v1
+    container_name: api-gateway
+    restart: always
+    depends_on:
+      - user-service
+      - movie-service
+      - rating-service
+      - recommendation-service
+    ports:
+      - "8080:80"
+
+  # ============================
+  # FRONTEND (Next.js)
+  # ============================
+  frontend:
+    image: gauravchile/frontend:v1
+    container_name: frontend
+    restart: always
+    depends_on:
+      - api-gateway
+    environment:
+      API_BASE_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+
+  # ============================
+  # SEED JOB (runs once)
+  # ============================
+  seed-job:
+    image: node:20
+    container_name: seed-job
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+    command: ["bash", "-c", "
+      echo 'Seeding PostgreSQL...';
+      node /seed/postgres-seed.js;
+
+      echo 'Seeding MongoDB...';
+      node /seed/mongo-seed.js;
+
+      echo 'Seeding Redis...';
+      node /seed/redis-seed.js || echo 'Redis optional';
+
+      echo 'All seed complete!';
+    "]
+    volumes:
+      - ./seed:/seed
+    restart: "no"
+
+volumes:
+  postgres-data:
+  mongo-data:

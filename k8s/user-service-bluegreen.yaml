@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service-blue
+  namespace: streamflix
+  labels:
+    app: user-service
+    version: blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: user-service
+        version: blue
+    spec:
+      containers:
+      - name: user-service
+        image: ${REGISTRY}/user-service:v1
+        ports:
+        - containerPort: 5000
+        env:
+        - name: POSTGRES_HOST
+          value: "postgres.streamflix.svc.cluster.local"
+        - name: POSTGRES_DB
+          value: "userdb"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: streamflix-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: streamflix-secrets
+              key: POSTGRES_PASSWORD
