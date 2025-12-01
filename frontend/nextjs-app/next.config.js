@@ -1,9 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // If you need to set environment API base, use runtime config or env vars
+  env: {
+    TMDB_API_KEY: process.env.TMDB_API_KEY, // ✅ Load from .env
+  },
   experimental: {
     appDir: false
   }
-}
-module.exports = nextConfig
+};
+
+module.exports = nextConfig;

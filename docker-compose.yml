@@ -76,6 +76,8 @@ services:
       MONGO_DB: streamflix_movies
     ports:
       - "5002:5000"
+    env_file:
+      - .env 
 
   # ============================
   # RATING SERVICE
@@ -135,6 +137,8 @@ services:
       - api-gateway
     environment:
       API_BASE_URL: http://localhost:8080
+    env_file:
+      - .env
     ports:
       - "3000:3000"
 

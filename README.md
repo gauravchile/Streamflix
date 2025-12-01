@@ -1,4 +1,4 @@
-# 🎬 Streamflix — Modern Microservices OTT Platform on Kubernetes
+# 🎬 Streamflix — Modern Microservices OTT Platform
 
 <p align="center">
   <!-- Frontend -->
@@ -6,150 +6,185 @@
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
 
   <!-- Backend -->
+
   <img src="https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white" />
   <img src="https://img.shields.io/badge/Express.js-404D59?style=for-the-badge&logo=express&logoColor=white" />
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white" />
 
   <!-- Databases -->
+
   <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" />
   <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" />
   <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" />
 
   <!-- DevOps & Infra -->
+
   <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
   <img src="https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" />
   <img src="https://img.shields.io/badge/NGINX-009639?style=for-the-badge&logo=nginx&logoColor=white" />
   <img src="https://img.shields.io/badge/Makefile-A42E2B?style=for-the-badge" />
-
-  <!-- CI/CD / GitHub -->
   <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white" />
 
   <!-- General -->
+
   <img src="https://img.shields.io/badge/Microservices-FF6F00?style=for-the-badge&logoColor=white" />
   <img src="https://img.shields.io/badge/Blue--Green_Deployments-8A2BE2?style=for-the-badge" />
 
   <!-- Repo related badges -->
+
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
   <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge" />
 </p>
 
+---
 
-
-
-A **production-grade, cloud-native OTT platform** built using a **microservices architecture**, deployed on **Kubernetes (kubeadm)** with automated **Blue‑Green deployments**, **Ingress routing**, **Redis caching**, **MongoDB & PostgreSQL**, and **NGINX API Gateway**.
+A **production-grade, cloud-native OTT platform** built using a **microservices architecture**, deployed on **Kubernetes (kubeadm)** with automated **Blue‑Green deployments**, **Ingress routing**, **Redis caching**, **MongoDB & PostgreSQL**, **NGINX API Gateway**, and **secure API integration using TMDB API key**.
 
 ---
 
-## 🚀 1. Overview
+## ⚡ Quickstart
 
-Streamflix is a full microservices ecosystem simulating a real-world OTT platform. It showcases DevOps skills such as:
+### 1️⃣ Clone the repository
 
-* Kubernetes deployments at scale
-* Blue-Green deployments
-* ConfigMaps, Secrets, StatefulSets
-* API Gateway routing
-* Horizontal scalability
-* Local-path storage provisioning
-* Multi-service communication inside a mesh-like structure
+```bash
+git clone https://github.com/gauravchile/streamflix.git
+cd streamflix
+```
+
+### 2️⃣ Configure environment
+
+```bash
+cp .env.example .env
+# Add your TMDB_API_KEY and DB credentials inside .env
+```
+
+### 3️⃣ Build & Run locally (Docker Compose)
+
+```bash
+docker compose up --build
+```
+
+### 4️⃣ Access frontend
+
+```
+http://localhost:3000
+```
+
+### 5️⃣ Deploy to Kubernetes
+
+```bash
+make k8s-apply
+```
 
 ---
 
-## 🧱 2. Production Architecture Diagram
+## 🚀 Overview
+
+Streamflix simulates a real-world OTT ecosystem with a modern DevOps approach. It showcases:
+
+* Kubernetes microservice deployments
+* Blue-Green rollouts with zero downtime
+* Secure API secrets via Kubernetes Secrets
+* Multi-database orchestration (MongoDB + PostgreSQL + Redis)
+* Automated CI/CD pipelines
+
+---
+
+## 🧱 Architecture Overview
 
 ![Streamflix Webpage](Screenshots/Streamflix.PNG)
 ![Streamflix Architecture](Screenshots/Architecture.png)
 
 ---
 
-## 🔧 3. Tech Stack
+## 🔧 Tech Stack
 
 ### **Frontend**
 
-* React.js
+* React.js + Next.js
+* TMDB API integration via `.env`
 * Served through NGINX
 
 ### **Backend Microservices**
 
 * **User Service** (Node.js + PostgreSQL)
-* **Movie Service** (Node.js + MongoDB)
+* **Movie Service** (Node.js + MongoDB + TMDB API integration)
 * **Rating Service** (Python Flask + MongoDB)
 * **Recommendation Service** (Node.js + Redis)
 
-### **Infrastructure**
+### **Infrastructure & CI/CD**
 
-* Kubernetes (kubeadm on AWS EC2)
-* ConfigMaps, Secrets, Deployments, StatefulSets
-* Local Path Storage Provisioner
-* NGINX Ingress Controller
-* Redis cache
+* Docker + Kubernetes (kubeadm on AWS EC2)
+* Blue/Green Deployments
+* Jenkins or GitHub Actions pipelines
+* Secrets and ConfigMaps for environment isolation
 
 ---
 
-## 🐳 4. Dockerization (All Services)
+## 💾 Secure API Key Integration (TMDB)
 
-Each service includes:
+All API keys are stored securely using **Kubernetes Secrets** and **.env files**.
 
-* Multi-stage Dockerfile
-* Environment-based configuration
-* Health checks
-* Optimized small images
+**Example:** `movie-service` uses TMDB API for fetching trending movies.
 
-Example (Movie Service):
+```js
+const apiKey = process.env.TMDB_API_KEY;
+const response = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}`);
+```
 
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install --production
-COPY . .
-CMD ["npm", "start"]
+Stored in:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: streamflix-secrets
+  namespace: streamflix
+type: Opaque
+stringData:
+  TMDB_API_KEY: "your_tmdb_api_key_here"
 ```
 
 ---
 
-## ☸️ 5. Kubernetes Setup
+## 🐳 Dockerization
 
-This project was deployed on:
+Each microservice includes:
 
-* **Ubuntu 24.04 EC2 instance**
-* **Kubeadm cluster (single-node)**
-* **Containerd runtime**
-* **Calico CNI**
-
-### Key Objects Used
-
-| Component     | Type                     |
-| ------------- | ------------------------ |
-| API Gateway   | Deployment + Service     |
-| Microservices | Deployments + Services   |
-| MongoDB       | StatefulSet              |
-| PostgreSQL    | StatefulSet              |
-| Redis         | Deployment + Service     |
-| Ingress       | NGINX Ingress Controller |
-| Seed Runner   | Job                      |
+* Multi-stage Dockerfile
+* Health checks
+* Environment variable configuration
+* Lightweight production images
 
 ---
 
-## 🔄 6. Blue‑Green Deployment Strategy
+## ☸️ Kubernetes Deployment (Blue-Green)
 
-Every microservice has two versions:
+* Blue (current production)
+* Green (staging/test)
+* Switch versions by changing service selector
 
-* `*-blue`
-* `*-green`
-
-### Flow
-
-1. Deploy green version
-2. Test traffic internally
-3. Switch Ingress/API gateway to new version
-4. Scale down blue version
-
-This ensures **zero downtime releases**.
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: movie-service
+  namespace: streamflix
+spec:
+  selector:
+    app: movie-service
+    version: blue  # switch to green during rollout
+  ports:
+    - port: 5000
+      targetPort: 5000
+```
 
 ---
 
-## 🌐 7. Ingress Setup (Without Hostname)
+## 🌐 Ingress Setup
+
+Unified external access through NGINX Ingress:
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -171,111 +206,71 @@ spec:
               number: 80
 ```
 
-You can access everything using:
+Access via:
 
 ```
-http://<EC2_PUBLIC_IP>:32205
-```
-
-(32205 = NodePort of ingress nginx controller)
-
----
-
-## 📦 8. Database Design
-
-### MongoDB — Movies, Ratings
-
-* Collections: `movies`, `ratings`
-* Shallow normalized structure for query performance
-
-### PostgreSQL — User Service
-
-* Tables: `users`, `sessions`
-* Relational model for authentication
-
-### Redis — Recommendations Cache
-
-* Optimizes API latency
-* Stores trending movies, cached results
-
----
-
-## 🧪 9. Seed Runner
-
-Loads initial data into:
-
-* MongoDB (Movies)
-* MongoDB (Ratings)
-* Postgres (Users)
-
-Runs as a Kubernetes Job:
-
-```yaml
-kind: Job
-metadata:
-  name: streamflix-seed-job
+http://<EC2_PUBLIC_IP>:<NodePort>
 ```
 
 ---
 
-## 🔍 10. API Gateway
+## 🗃 Databases
 
-Acts as a router for all microservices.
+| Service        | Database   | Description               |
+| -------------- | ---------- | ------------------------- |
+| User           | PostgreSQL | Authentication, sessions  |
+| Movie          | MongoDB    | Movie catalog + TMDB data |
+| Rating         | MongoDB    | User ratings              |
+| Recommendation | Redis      | Cached recommendations    |
 
-### Example Route
+---
+
+## 🧪 Seed Runner
+
+Seeds initial demo data into MongoDB, Redis, and Postgres.
+
+---
+
+## 🔌 API Gateway (NGINX)
+
+Central routing hub for all microservices.
 
 ```nginx
 location /api/movie/ {
-  proxy_pass http://movie-service.<namespace>.svc.cluster.local:5000/;
+  proxy_pass http://movie-service.streamflix.svc.cluster.local:5000/;
 }
 ```
 
 ---
 
-## 📊 11. Features
+## 📊 Key Features
 
-✔ Fully Dockerized Microservices
-✔ Production‑grade Kubernetes YAMLs
-✔ Blue‑Green Deployments
-✔ Zero-downtime rollouts
-✔ Redis caching for recommendations
-✔ API Gateway with NGINX
-✔ Ingress for unified external access
-✔ Stateful database pods
-✔ Local persistent storage
-✔ Seed automation job
-✔ Environment variable‑based configs
-✔ Isolated namespaces
-✔ Supports horizontal scaling
+* Full microservices setup
+* Docker + Kubernetes orchestration
+* Blue-Green deployments
+* Secure TMDB API integration
+* Redis caching for recommendations
+* NGINX Ingress routing
+* Configurable CI/CD pipelines
+* Horizontal scaling ready
 
 ---
 
-## 🛠 12. How to Deploy (Local or Cloud)
+## 🛠 How to Deploy
 
-### Step 1 — Clone Repo
-
-```bash
-git clone https://github.com/gauravchile/streamflix.git
-cd streamflix
-```
-
-### Step 2 — Build  and Push All Images
+### Local
 
 ```bash
-make docker
+docker compose up --build
 ```
 
-### Step 3 — Push Images
-
-```bash
-make push
-```
-
-### Step 4 — Deploy and Cleanup Kubernetes
+### Kubernetes
 
 ```bash
 make k8s-apply
 ```
+
+### Delete
 
 ```bash
 make k8s-delete
@@ -283,40 +278,50 @@ make k8s-delete
 
 ---
 
-## 🧹 13. Troubleshooting Common Issues
+## 🧹 Troubleshooting
 
-### Disk Pressure on Single Node
-
-* Clean containerd
-* Restart kubelet
-* Add more storage
-
-### Ingress Not Accessible
+**Ingress not reachable:**
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
-```
-
-```bash
-kubectl -n ingress-nginx get pods
-
 kubectl -n ingress-nginx get svc ingress-nginx-controller
-
-kubectl get svc -n ingress-nginx
 ```
 
-Use NodePort if no LoadBalancer available.
+**Check secrets:**
+
+```bash
+kubectl -n streamflix get secrets streamflix-secrets -o yaml
+```
+
+**Pod logs:**
+
+```bash
+kubectl logs -n streamflix deploy/movie-service-blue
+```
 
 ---
 
-## 📜 14. License
+## 🔒 Security
 
-MIT License — free to use.
+* Secrets managed via `Kubernetes Secrets`
+* Environment variables loaded at runtime
+* No hardcoded credentials in code or YAMLs
 
 ---
 
-## ⭐ 15. Support / Contributions
+## 🌍 Git Hygiene
 
-Feel free to submit issues or PRs.
+**Never commit:** `.env`, `k8s/streamflix-secrets-config.yaml`, credentials, or database volumes.
 
-If this helped you, star ⭐ the repo!
+Provide example templates instead:
+
+```bash
+cp .env.example .env
+```
+
+---
+
+## 📜 License
+
+MIT License — free for personal or educational use.
+
+---

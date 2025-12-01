@@ -1,0 +1,38 @@
+# Environment files
+.env
+*.env
+k8s/streamflix-secrets-config.yaml
+
+# Node modules
+node_modules/
+*/node_modules/
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Logs and temp files
+*.log
+*.pid
+*.seed
+*.lock
+*.tmp
+
+# Build artifacts
+dist/
+build/
+.next/
+coverage/
+*.zip
+
+# Docker volumes
+mongo-data/
+postgres-data/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDE / Editor settings
+.vscode/
+.idea/
